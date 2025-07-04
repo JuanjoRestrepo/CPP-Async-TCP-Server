@@ -37,19 +37,15 @@ tcp::acceptor startServer(boost::asio::io_context &ioContext, unsigned short por
 // —————————————————— CLIENTS MANAGEMENT ——————————————————
 
 // Accepts a client, sends the current time, and closes the socket
-void handleClient(tcp::acceptor &acceptor, boost::asio::io_context &ioContext) {
-    tcp::socket socket(ioContext);
-    acceptor.accept(socket);  // bloquea hasta nueva conexión
-
-    auto message = makeDaytimeString();
-    // ec: Error code to capture any issues during write operation
+void handleClient(tcp::socket socket) {
+    std::string message = makeDaytimeString();
     boost::system::error_code ec;
     boost::asio::write(socket, boost::asio::buffer(message), ec);
+
     if (ec) {
         std::cerr << "❌ Error sending time: " << ec.message() << "\n";
     }
 }
-
 
 // getCurrentTime
 void showCurrentTime() {
@@ -67,9 +63,15 @@ int main() {
     auto acceptor = startServer(ioContext, port);
 
     while (true) {
-        std::cout << "🟢 Waiting for next client...\n";
-        handleClient(acceptor, ioContext);
+        std::cout << "🟢 Waiting for client...\n";
+
+        tcp::socket socket(ioContext);
+        acceptor.accept(socket);
+
+        std::thread clientThread(handleClient, std::move(socket));
+        clientThread.detach(); // no bloqueamos el hilo principal
     }
+
 
     //showCurrentTime();
     
