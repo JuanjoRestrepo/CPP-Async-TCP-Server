@@ -27,3 +27,7 @@ fi
 # Ejecución del programa
 printf "\n✅ Compilation succeeded. Running...\n\n"
 ./"$EXEC"
+
+rm -f "$EXEC"
+rm -f main
+echo -e "\n🗑️  main & main.out deleted."
