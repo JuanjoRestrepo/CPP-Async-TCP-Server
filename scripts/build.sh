@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# Nombre del ejecutable
+# Name: build.sh
+# Description: Script to compile and run the C++ async TCP server with Boost.
 EXEC="main.out"
 
 # Detect Boost include and lib paths
@@ -15,19 +16,16 @@ else
   exit 1
 fi
 
-# Compilación con flags básicos
-g++ -std=c++11 -O2 -Wall -I"$BOOST_INCLUDE" -L"$BOOST_LIB" -lboost_system -o "$EXEC" src/main.cpp
+# Compile both main and server.cpp
+g++ -std=c++11 -O2 -Wall -Iinclude -I"$BOOST_INCLUDE" -L"$BOOST_LIB" \
+    -lboost_system \
+    -o "$EXEC" src/main.cpp src/server.cpp
 
-# Salir si la compilación falla
+# Stop on compilation failure
 if [ $? -ne 0 ]; then
   printf "\n❌ Compilation failed.\n\n"
   exit 1
 fi
 
-# Ejecución del programa
 printf "\n✅ Compilation succeeded. Running...\n\n"
 ./"$EXEC"
-
-rm -f "$EXEC"
-rm -f main
-#echo -e "\n🗑️  main & main.out deleted."
