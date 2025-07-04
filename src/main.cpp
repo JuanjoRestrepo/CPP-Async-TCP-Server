@@ -1,6 +1,7 @@
 #include<iostream>
 #include<ctime>
 #include<string>
+#include <boost/asio.hpp>
 
 std::string makeDaytimeString() {
     std:: time_t now = std:: time(nullptr);

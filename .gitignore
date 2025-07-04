@@ -39,3 +39,21 @@
 
 # debug information files
 *.dwo
+
+# macOS
+.DS_Store
+Icon?
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / temporales
+*.log
+*.tmp
+
+# Ignore build artifacts and executables
+main
+
