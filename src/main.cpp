@@ -3,40 +3,75 @@
 #include <string>
 #include <boost/asio.hpp>
 
-// Esta línea debe ir aquí para habilitar el alias `tcp`
+// Enable the alias `tcp` for boost::asio::ip::tcp
 using boost::asio::ip::tcp;
 
-// Función pura: retorna la hora actual como string legible
+// Returns the current time as a string
 std::string makeDaytimeString() {
     std::time_t now = std::time(nullptr);
     return std::ctime(&now);
 }
 
-// Función que inicializa el aceptador TCP
-tcp::acceptor createAcceptor(boost::asio::io_context& ioContext, unsigned short port) {
-    tcp::endpoint endpoint(tcp::v4(), port);
+// —————————————————— SERVER INITIALIZATION —————————————————— 
+
+// Initializes a TCP acceptor to listen on the specified port
+tcp::acceptor createAcceptor(boost::asio::io_context &ioContext, unsigned short port) {
+    auto endpoint = tcp::endpoint(tcp::v4(), port);
     return tcp::acceptor(ioContext, endpoint);
 }
 
 // Starts the server and listens for incoming connections
-void startServer(unsigned short port = 13) {
-    boost::asio::io_context ioContext;
+tcp::acceptor startServer(boost::asio::io_context &ioContext, unsigned short port) {
     try {
         auto acceptor = createAcceptor(ioContext, port);
-        std::cout << "🟢 Listening on Port: " << port << "...\n";
-    } catch (const std::exception& e) {
-        std::cerr << "❌ Error: " << e.what() << std::endl;
+        std::cout << "🟢 Listening on Port: " << port << std::endl;
+        return acceptor;
+    } catch (const std::exception &e) {
+        throw std::runtime_error("❌ Failed to start server");
+        std::cerr << "-> Error: " << e.what() << std::endl;
+        std::exit(EXIT_FAILURE);
     }
 }
 
 
-int main() {
-    startServer(); 
+// —————————————————— CLIENTS MANAGEMENT ——————————————————
 
+// Accepts a client, sends the current time, and closes the socket
+void handleClient(tcp::acceptor &acceptor, boost::asio::io_context &ioContext) {
+    tcp::socket socket(ioContext);
+    acceptor.accept(socket);  // bloquea hasta nueva conexión
+
+    auto message = makeDaytimeString();
+    // ec: Error code to capture any issues during write operation
+    boost::system::error_code ec;
+    boost::asio::write(socket, boost::asio::buffer(message), ec);
+    if (ec) {
+        std::cerr << "❌ Error sending time: " << ec.message() << "\n";
+    }
+}
+
+
+// getCurrentTime
+void showCurrentTime() {
     std::string currentTime; 
     currentTime = makeDaytimeString();
-
     std::cout << "Server placeholder ✓" << std::endl;
     std::cout << "Current time: " << currentTime;
+}
+
+int main() {
+    unsigned short port = 13;
+    boost::asio::io_context ioContext;
+
+    // Starts the server and listens for incoming connections
+    auto acceptor = startServer(ioContext, port);
+
+    while (true) {
+        std::cout << "🟢 Waiting for next client...\n";
+        handleClient(acceptor, ioContext);
+    }
+
+    //showCurrentTime();
+    
     return 0;
 }
