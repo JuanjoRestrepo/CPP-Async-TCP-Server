@@ -27,12 +27,15 @@ tcp::acceptor startServer(boost::asio::io_context& ioContext, unsigned short por
     }
 }
 
-void handleClient(tcp::socket socket) {
-    std::string message = makeDaytimeString();
-    boost::system::error_code ec;
-    boost::asio::write(socket, boost::asio::buffer(message), ec);
+// Nuevo: delega la escritura a un hilo del pool
+void handleClient(boost::asio::thread_pool &pool, tcp::socket socket) {
+    boost::asio::post(pool, [mySocket = std::move(socket)]() mutable {
+        std::string message = makeDaytimeString();
+        boost::system::error_code ec;
+        boost::asio::write(mySocket, boost::asio::buffer(message), ec);
 
-    if (ec) {
-        std::cerr << "❌ Error sending time: " << ec.message() << "\n";
-    }
+        if (ec) {
+            std::cerr << "❌ Error sending time: " << ec.message() << "\n";
+        }
+    });
 }

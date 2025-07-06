@@ -17,7 +17,7 @@ else
 fi
 
 # Compile both main and server.cpp
-g++ -std=c++11 -O2 -Wall -Iinclude -I"$BOOST_INCLUDE" -L"$BOOST_LIB" \
+g++ -std=c++17 -O2 -Wall -Iinclude -I"$BOOST_INCLUDE" -L"$BOOST_LIB" \
     -lboost_system \
     -o "$EXEC" src/main.cpp src/server.cpp
 
